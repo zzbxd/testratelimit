@@ -1,0 +1,35 @@
+name: Multi-OS Workflow
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Common step
+        run: echo "Running on ${{ matrix.os }}"
+
+      - name: Linux
+        if: matrix.os == 'ubuntu-latest'
+        uses: docker://ubuntu:latest
+        with:
+          entrypoint: /bin/sh
+          args: -c "apt-get update && apt-get install -y curl && curl -sL https://deb.nodesource.com/setup_18.x | bash -" # Example: install nodejs
+
+      - name: Windows
+        if: matrix.os == 'windows-latest'
+        run: choco install nodejs
+
+      - name: macOS
+        if: matrix.os == 'macos-latest'
+        run: brew install node
+
+      - name: Run tests
+        run: npm install && npm test
